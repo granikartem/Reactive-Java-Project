@@ -1,5 +1,6 @@
 package org.reactive_java.data.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Data
 @Builder
+@JsonSerialize
 public class Task {
 
     private final long taskId;
@@ -27,6 +29,8 @@ public class Task {
     private final Duration completionTime;
 
     private final Evaluation evaluation;
+
+    private final EvaluationDifference evaluationDifference;
 
     private User user;
 

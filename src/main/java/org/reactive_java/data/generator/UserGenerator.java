@@ -1,8 +1,6 @@
 package org.reactive_java.data.generator;
 
-import org.apache.maven.surefire.shared.lang3.RandomStringUtils;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.State;
+import org.reactive_java.data.model.Group;
 import org.reactive_java.data.model.User;
 
 import java.util.ArrayList;
@@ -13,24 +11,34 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.reactive_java.data.util.Constants.*;
 
-@State(Scope.Benchmark)
 public class UserGenerator {
-    public static List<User> generateUsers() {
-        List<User> users = new ArrayList<>(USER_AMOUNT);
+    public static List<User> generateUsers(int userAmount, List<Group> groups) {
+        List<User> users = new ArrayList<>(userAmount);
 
         for (int i = 0; i < USER_AMOUNT; i++) {
-            users.add(new User(RandomStringUtils.randomAlphanumeric(10), getRandomGroups()));
+            var pickedGroups = pickRandomGroups(groups);
+            User user = new User(generateUserName(), pickedGroups);
+            users.add(user);
+            for (Group group : pickedGroups) {
+                group.getMembers().add(user);
+            }
         }
 
         return users;
     }
 
-    private static Set<String> getRandomGroups() {
-        int maxGroupAmount = ThreadLocalRandom.current().nextInt(MAX_GROUPS_PER_USER);
-        Set<String> groups = new HashSet<>(maxGroupAmount);
-        for (int i = 0; i < maxGroupAmount; i++) {
-            groups.add(USER_GROUPS.get(ThreadLocalRandom.current().nextInt(USER_GROUPS.size())));
+    private static String generateUserName() {
+        return USER_NAMES.get(ThreadLocalRandom.current().nextInt(USER_NAMES.size())) +
+                " " +
+                USER_SURNAMES.get(ThreadLocalRandom.current().nextInt(USER_SURNAMES.size()));
+    }
+
+    private static Set<Group> pickRandomGroups(List<Group> groups) {
+        int groupAmount = ThreadLocalRandom.current().nextInt(MAX_GROUPS_PER_USER);
+        Set<Group> userGroups = new HashSet<>(groupAmount);
+        for (int i = 0; i < groupAmount; i++) {
+            userGroups.add(groups.get(ThreadLocalRandom.current().nextInt(groups.size())));
         }
-        return groups;
+        return userGroups;
     }
 }

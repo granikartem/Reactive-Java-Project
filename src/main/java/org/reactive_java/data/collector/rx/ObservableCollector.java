@@ -1,10 +1,11 @@
 package org.reactive_java.data.collector.rx;
 
-import io.reactivex.Observable;
-import io.reactivex.functions.BiConsumer;
-import io.reactivex.functions.BiFunction;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
+
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.functions.BiConsumer;
+import io.reactivex.rxjava3.functions.BiFunction;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.reactive_java.data.model.Evaluation;
 import org.reactive_java.data.model.Task;
 import org.reactive_java.data.model.User;
@@ -24,12 +25,13 @@ public class ObservableCollector {
             user = task.getUser();
             Evaluation evaluation = task.getEvaluation();
 
-            boolean taskCompletedOnTime = task.getStatuses()
-                    .stream()
-                    .noneMatch(
-                            taskStatus -> Duration.between(taskStatus.startTime(), taskStatus.finishTime())
-                                    .compareTo(evaluation.getStatusDurationMap().get(taskStatus.status())) > 0
-                    );
+            boolean taskCompletedOnTime = true;
+//                    task.getStatuses()
+//                    .stream()
+//                    .noneMatch(
+//                            taskStatus -> Duration.between(taskStatus.startTime(), taskStatus.finishTime())
+//                                    .compareTo(evaluation.getStatusDurationMap().get(taskStatus.status())) > 0
+//                    );
 
             map.computeIfAbsent(user, _ -> new HashMap<>()).put(task, taskCompletedOnTime);
         };

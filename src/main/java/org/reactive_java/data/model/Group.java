@@ -1,12 +1,12 @@
 package org.reactive_java.data.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
 
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class Group {
     String name;
 

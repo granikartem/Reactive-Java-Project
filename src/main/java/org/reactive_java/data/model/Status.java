@@ -1,11 +1,8 @@
 package org.reactive_java.data.model;
 
 import lombok.RequiredArgsConstructor;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.State;
 
 @RequiredArgsConstructor
-@State(Scope.Benchmark)
 public enum Status {
 
     WAITING("WAITING", "В ожидании", false),

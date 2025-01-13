@@ -4,11 +4,19 @@ import org.reactive_java.data.model.Status;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 public final class Constants {
     public final static Duration MAX_DURATION = Duration.ofHours(12);
 
     public final static int STATUS_AMOUNT = Status.values().length;
+
+    public final static Map<Status, Double> STATUS_TIME_SHARE_MAP = Map.of(
+            Status.WAITING, 0.0625,
+            Status.IN_PROGRESS, 0.5375,
+            Status.TESTING, 0.3375,
+            Status.INTEGRATION, 0.0625
+    );
 
     public final static int USER_AMOUNT = 1000;
     public final static int MAX_GROUPS_PER_USER = 4;

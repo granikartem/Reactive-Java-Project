@@ -26,7 +26,10 @@ public class TaskGenerator {
             Status.TESTING, Duration.ofHours(3),
             Status.INTEGRATION, Duration.ofMinutes(30)
     );
-    private final static List<User> users = UserGenerator.generateUsers();
+    @Getter
+    private static List<User> users;
+    @Getter
+    private static final Duration averageEvaluationTime = Duration.ofHours(10);
     @Getter
     private static Duration taskGenerationDelay = Duration.ofSeconds(1).plus(Duration.ofMillis(500));
     @Getter
@@ -44,10 +47,29 @@ public class TaskGenerator {
         return tasks;
     }
 
+    public static List<Task> generateTasksFromManipulation(
+            int amount,
+            TaskPriority priority,
+            List<TaskStatus> statuses,
+            Duration completionTime,
+            Evaluation evaluation,
+            User user,
+            String description) {
+        List<Task> tasks = new ArrayList<>(amount);
+
+        for (int i = 0; i < amount; i++) {
+            tasks.add(generateTaskFromManipulation(priority, statuses, completionTime, evaluation, user, description));
+        }
+
+        return tasks;
+    }
+
 
     public static Task generateTask() {
         var statuses = generateStatuses();
         var completionTime = calculateCompletionTime(statuses);
+        var evaluation = generateEvaluation();
+        var evaluationDifference = calculateDifference(statuses, evaluation);
 
         return new Task(
                 generateId(),
@@ -56,7 +78,8 @@ public class TaskGenerator {
                 generateTaskPriority(),
                 statuses,
                 completionTime,
-                generateEvaluation(),
+                evaluation,
+                evaluationDifference,
                 pickUser(),
                 generateDescription()
         );
@@ -78,9 +101,10 @@ public class TaskGenerator {
                 statuses,
                 completionTime,
                 evaluation,
+                calculateDifference(statuses, evaluation),
                 user,
                 description
-        )
+        );
     }
 
 
@@ -99,11 +123,36 @@ public class TaskGenerator {
     private static List<TaskStatus> generateStatuses() {
         List<TaskStatus> statuses = new ArrayList<>(STATUS_AMOUNT);
 
-        averageCompletionTime.
+        for (int i = 0; i < STATUS_AMOUNT; i++) {
+            Status status = Status.values()[i];
+            double statusShare = STATUS_TIME_SHARE_MAP.get(status);
+            long averageMillis = (long) (averageCompletionTime.toMillis() * statusShare);
+
+            Duration statusDuration = generateDurationFromMeanMillis(averageMillis);
+
+            TaskStatus taskStatus = new TaskStatus(status, statusDuration);
+            statuses.add(taskStatus);
+        }
         return statuses;
     }
 
+    private static Duration generateDurationFromMeanMillis(long averageMillis) {
+        double ratio = 1.0 + ThreadLocalRandom.current().nextGaussian();
+        if (ratio < 0.0001) {
+            return Duration.ofMillis((long) (averageMillis * 0.1));
+        } else {
+            return Duration.ofMillis((long) (averageMillis * ratio));
+        }
+    }
+
     private static Duration calculateCompletionTime(List<TaskStatus> statuses) {
+        Duration totalDuration = Duration.ZERO;
+
+        for (TaskStatus status : statuses) {
+            totalDuration = totalDuration.plus(status.completionTime());
+        }
+
+        return totalDuration;
     }
 
     private static Evaluation generateEvaluation() {
@@ -111,14 +160,61 @@ public class TaskGenerator {
         Map<Status, Duration> statusDurationMap = new HashMap<>();
 
         for (int i = 0; i < STATUS_AMOUNT; i++) {
-            Duration duration = generateDuration();
-            totalDuration = totalDuration.plus(duration);
-            statusDurationMap.put(Status.values()[i], duration);
+            Status status = Status.values()[i];
+            double statusShare = STATUS_TIME_SHARE_MAP.get(status);
+            long averageMillis = (long) (averageEvaluationTime.toMillis() * statusShare);
+
+            Duration statusDuration = generateDurationFromMeanMillis(averageMillis);
+
+            totalDuration = totalDuration.plus(statusDuration);
+            statusDurationMap.put(status, statusDuration);
         }
 
         return new Evaluation(totalDuration, statusDurationMap, pickUser());
     }
 
+    private static EvaluationDifference calculateDifference(List<TaskStatus> statuses, Evaluation evaluation) {
+        Duration completionTime = calculateCompletionTime(statuses);
+
+        Duration difference;
+        boolean faster;
+
+        if (completionTime.compareTo(evaluation.getEstimatedCompletionTime()) < 0) {
+            difference = evaluation.getEstimatedCompletionTime().minus(completionTime);
+            faster = true;
+        } else {
+            difference = completionTime.minus(evaluation.getEstimatedCompletionTime());
+            faster = false;
+        }
+
+        Map<TaskStatus, StatusDifference> statusDifferences = new HashMap<>();
+
+        for (TaskStatus status : statuses) {
+            var statusCompletionTime = status.completionTime();
+            var statusEvaluationTime = evaluation.getStatusDurationMap().get(status.status());
+            StatusDifference statusDifference;
+
+            if (statusCompletionTime.compareTo(statusEvaluationTime) < 0) {
+                statusDifference = new StatusDifference(
+                        true,
+                        statusEvaluationTime.minus(statusCompletionTime)
+                );
+            } else {
+                statusDifference = new StatusDifference(
+                        false,
+                        statusCompletionTime.minus(statusEvaluationTime)
+                );
+            }
+
+            statusDifferences.put(status, statusDifference);
+        }
+
+        return new EvaluationDifference(faster, difference, statusDifferences);
+    }
+
+    public static void setUsers(List<User> users) {
+        TaskGenerator.users = users;
+    }
 
     private static User pickUser() {
         return users.get(ThreadLocalRandom.current().nextInt(USER_AMOUNT));

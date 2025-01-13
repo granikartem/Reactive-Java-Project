@@ -1,6 +1,6 @@
 package org.reactive_java.data.collector.rx;
 
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 import org.reactive_java.data.collector.rx.subscriber.TaskSubscriber;
 import org.reactive_java.data.model.Task;
 import org.reactive_java.data.model.User;
