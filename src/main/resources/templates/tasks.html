@@ -1,10 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
+!DOCTYPE html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Raw Tasks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Table</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
+<h1>Таблица задач</h1>
+<table id="taskTable">
+    <thead>
+    <tr>
+        <th>Task ID</th>
+        <th>Task Number</th>
+        <th>User Created</th>
+        <th>Priority</th>
+        <th>Completion Time</th>
+        <th>Evaluation</th>
+        <th>Evaluation Difference</th>
+        <th>User</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
 
+<script src="/js/tasks.js"></script>
 </body>
 </html>
