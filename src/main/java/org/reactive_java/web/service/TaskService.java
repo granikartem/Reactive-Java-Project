@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import org.reactive_java.data.generator.TaskGenerator;
 import org.reactive_java.data.model.Task;
 import org.reactive_java.data.model.User;
+import org.reactive_java.web.dto.TaskDto;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -17,9 +18,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Service
 public class TaskService {
     private final List<User> users;
-    private int millisDelay = 5000;
-    private Deque<Task> cache;
     AtomicBoolean running = new AtomicBoolean(false);
+    AtomicBoolean addedTasksPresent = new AtomicBoolean(false);
+    private Flowable<Task> taskFlowable;
+    private long millisDelay = 5000;
+    private Deque<TaskDto> addedTasks = new ArrayDeque<>();
+    private Deque<Task> cache;
+
+    public TaskService(List<User> users) {
+        this.users = users;
+    }
 
     @PostConstruct
     public void init() {
@@ -27,9 +35,41 @@ public class TaskService {
         running.set(true);
         cache = new ArrayDeque<>(100);
         TaskGenerator.setUsers(users);
+        initFlowable();
     }
-    public TaskService(List<User> users) {
-        this.users = users;
+
+    private void initFlowable() {
+        taskFlowable = Flowable.interval(millisDelay, TimeUnit.MILLISECONDS)
+                .filter(_ -> running.get())
+                .map(_ ->
+                        {
+                            Task task;
+                            if (addedTasksPresent.get()) {
+                                if (addedTasks.size() > 0) {
+                                    var taskSpec = addedTasks.poll();
+                                    task = TaskGenerator.generateTaskFromManipulation(
+                                            taskSpec.getPriority(),
+                                            taskSpec.getCompletionTime(),
+                                            taskSpec.getEvaluation(),
+                                            taskSpec.getUserName(),
+                                            taskSpec.getDescription()
+                                    );
+                                    return task;
+                                } else {
+                                    addedTasksPresent.set(false);
+                                }
+                            }
+                            return TaskGenerator.generateTask();
+                        }
+                )
+                .doOnNext(this::addToCache);
+    }
+
+    private void addToCache(Task task) {
+        if (cache.size() >= 100) {
+            cache.poll();
+        }
+        cache.add(task);
     }
 
     public void pauseGeneration() {
@@ -40,11 +80,13 @@ public class TaskService {
         running.set(true);
     }
 
-    public void updateDelay(int millisDelay) {
+    public void updateDelay(long millisDelay) {
         this.millisDelay = millisDelay;
+        taskFlowable.subscribe();
+        initFlowable();
     }
 
-    public int getDelay() {
+    public long getDelay() {
         return millisDelay;
     }
 
@@ -61,17 +103,6 @@ public class TaskService {
     }
 
     public Flowable<Task> getTaskFlowable() {
-        return Flowable.interval(millisDelay, TimeUnit.MILLISECONDS)
-                .filter(_ -> running.get())
-                .map(_ -> {
-                    var task = TaskGenerator.generateTask();
-                    if (cache.size() < 100) {
-                        cache.push(task);
-                    } else {
-                        cache.poll();
-                        cache.push(task);
-                    }
-                    return task;
-                });
+        return taskFlowable;
     }
 }

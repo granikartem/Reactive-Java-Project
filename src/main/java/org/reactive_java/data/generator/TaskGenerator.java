@@ -47,22 +47,22 @@ public class TaskGenerator {
         return tasks;
     }
 
-    public static List<Task> generateTasksFromManipulation(
-            int amount,
-            TaskPriority priority,
-            List<TaskStatus> statuses,
-            Duration completionTime,
-            Evaluation evaluation,
-            User user,
-            String description) {
-        List<Task> tasks = new ArrayList<>(amount);
-
-        for (int i = 0; i < amount; i++) {
-            tasks.add(generateTaskFromManipulation(priority, statuses, completionTime, evaluation, user, description));
-        }
-
-        return tasks;
-    }
+//    public static List<Task> generateTasksFromManipulation(
+//            int amount,
+//            TaskPriority priority,
+//            Duration completionTime,
+//            Duration evaluationTime,
+//            String userName,
+//            String description
+//    ) {
+//        List<Task> tasks = new ArrayList<>(amount);
+//
+//        for (int i = 0; i < amount; i++) {
+//            tasks.add(generateTaskFromManipulation(priority, completionTime, evaluation, user, description));
+//        }
+//
+//        return tasks;
+//    }
 
 
     public static Task generateTask() {
@@ -87,12 +87,15 @@ public class TaskGenerator {
 
     public static Task generateTaskFromManipulation(
             TaskPriority priority,
-            List<TaskStatus> statuses,
             Duration completionTime,
-            Evaluation evaluation,
-            User user,
+            Duration evaluationTime,
+            String userName,
             String description
     ) {
+        List<TaskStatus> statuses = generateStatusesFromTime(completionTime);
+        Evaluation evaluation = generateEvaluationFromTime(evaluationTime);
+        User user = UserGenerator.generateUserFromUserName(userName);
+
         return new Task(
                 generateId(),
                 generateTaskNumber(),
@@ -105,6 +108,14 @@ public class TaskGenerator {
                 user,
                 description
         );
+    }
+
+    private static Evaluation generateEvaluationFromTime(Duration evaluationTime) {
+        return null;
+    }
+
+    private static List<TaskStatus> generateStatusesFromTime(Duration completionTime) {
+        return null;
     }
 
 

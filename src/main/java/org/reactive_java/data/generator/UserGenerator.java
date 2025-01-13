@@ -41,4 +41,9 @@ public class UserGenerator {
         }
         return userGroups;
     }
+
+    public static User generateUserFromUserName(String userName) {
+        var pickedGroups = pickRandomGroups(groups);
+        User user = new User(userName, pickedGroups);
+    }
 }
