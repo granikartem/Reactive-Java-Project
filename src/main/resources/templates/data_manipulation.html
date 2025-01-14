@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление данными</title>
+    <title>Data manipulation</title>
 </head>
 <body>
 <h1>Управление данными</h1>
@@ -19,6 +19,36 @@
     <input type="number" id="delayInput" placeholder="Введите задержку">
     <button type="submit">Обновить</button>
 </form>
+
+<form id="taskForm">
+    <h2>Создание задач</h2>
+    <label for="amount">Количество задач:</label>
+    <input type="number" id="amount" name="amount" required><br><br>
+
+    <label for="priority">Приоритет:</label>
+    <select id="priority" name="priority" required>
+        <option value="MINOR">MINOR</option>
+        <option value="TRIVIAL">TRIVIAL</option>
+        <option value="MAJOR">MAJOR</option>
+        <option value="CRITICAL">CRITICAL</option>
+    </select><br><br>
+
+    <label for="completionTime">Время выполнения (в минутах):</label>
+    <input type="number" id="completionTime" name="completionTime" required><br><br>
+
+    <label for="evaluation">Оценка (в минутах):</label>
+    <input type="number" id="evaluation" name="evaluation" required><br><br>
+
+    <label for="userName">Имя пользователя:</label>
+    <input type="text" id="userName" name="userName" required><br><br>
+
+    <label for="description">Описание:</label>
+    <textarea id="description" name="description" required></textarea><br><br>
+
+    <button type="submit">Отправить</button>
+</form>
+
+<button id = "pauseButton"> Остановить/Возобновить </button>
 
 <script src = "/js/data_manipulation.js"></script>
 </body>

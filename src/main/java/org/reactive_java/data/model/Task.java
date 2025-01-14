@@ -32,7 +32,7 @@ public class Task {
 
     private final EvaluationDifference evaluationDifference;
 
-    private User user;
+    private final User user;
 
-    private String description;
+    private final String description;
 }

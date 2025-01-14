@@ -23,7 +23,7 @@ window.onload = function() {
     };
 };
 
-function addTask(taskId, taskNumber, isUserCreated, priority, completionTime, evaluation, evaluationDifference, user) {
+function addTask(taskId, taskNumber, userCreated, priority, completionTime, evaluation, evaluationDifference, user) {
     const newRow = table.insertRow();
 
     const cellTaskId = newRow.insertCell(0);
@@ -37,7 +37,7 @@ function addTask(taskId, taskNumber, isUserCreated, priority, completionTime, ev
 
     cellTaskId.textContent = taskId;
     cellTaskNumber.textContent = taskNumber;
-    cellUserCreated.textContent = isUserCreated ? "Yes" : "No";
+    cellUserCreated.textContent = userCreated ? "Yes" : "No";
     cellPriority.textContent = priority;
     cellCompletionTime.textContent = completionTime;
     cellEvaluation.textContent = evaluation;
@@ -53,7 +53,7 @@ function addTaskFromJson(task) {
     addTask(
         task.taskId,
         task.taskNumber,
-        task.isUserCreated,
+        task.userCreated,
         task.priority,
         task.completionTime,
         eval,

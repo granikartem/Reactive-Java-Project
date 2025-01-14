@@ -33,11 +33,11 @@ public class TaskGenerator {
     @Getter
     private static Duration taskGenerationDelay = Duration.ofSeconds(1).plus(Duration.ofMillis(500));
     @Getter
-    private static double averageCompletionRate = 0.75;
+    private static long generationDelayMillis = 5000;
     @Getter
     private static Duration averageCompletionTime = Duration.ofHours(8);
 
-    public static List<Task> generateTasks(int amount) {
+    public static List<Task> generateTasks(int amount) throws InterruptedException {
         List<Task> tasks = new ArrayList<>(amount);
 
         for (int i = 0; i < amount; i++) {
@@ -47,25 +47,7 @@ public class TaskGenerator {
         return tasks;
     }
 
-//    public static List<Task> generateTasksFromManipulation(
-//            int amount,
-//            TaskPriority priority,
-//            Duration completionTime,
-//            Duration evaluationTime,
-//            String userName,
-//            String description
-//    ) {
-//        List<Task> tasks = new ArrayList<>(amount);
-//
-//        for (int i = 0; i < amount; i++) {
-//            tasks.add(generateTaskFromManipulation(priority, completionTime, evaluation, user, description));
-//        }
-//
-//        return tasks;
-//    }
-
-
-    public static Task generateTask() {
+    public static Task generateTask() throws InterruptedException {
         var statuses = generateStatuses();
         var completionTime = calculateCompletionTime(statuses);
         var evaluation = generateEvaluation();
@@ -89,12 +71,12 @@ public class TaskGenerator {
             TaskPriority priority,
             Duration completionTime,
             Duration evaluationTime,
-            String userName,
+            User user,
             String description
-    ) {
+    ) throws InterruptedException {
+//        Thread.sleep(generationDelayMillis);
         List<TaskStatus> statuses = generateStatusesFromTime(completionTime);
         Evaluation evaluation = generateEvaluationFromTime(evaluationTime);
-        User user = UserGenerator.generateUserFromUserName(userName);
 
         return new Task(
                 generateId(),
@@ -111,11 +93,37 @@ public class TaskGenerator {
     }
 
     private static Evaluation generateEvaluationFromTime(Duration evaluationTime) {
-        return null;
+        Duration totalDuration = Duration.ZERO;
+        Map<Status, Duration> statusDurationMap = new HashMap<>();
+
+        for (int i = 0; i < STATUS_AMOUNT; i++) {
+            Status status = Status.values()[i];
+            double statusShare = STATUS_TIME_SHARE_MAP.get(status);
+            long evaluationMillis = (long) (evaluationTime.toMillis() * statusShare);
+
+            Duration statusDuration = Duration.ofMillis(evaluationMillis);
+
+            totalDuration = totalDuration.plus(statusDuration);
+            statusDurationMap.put(status, statusDuration);
+        }
+
+        return new Evaluation(totalDuration, statusDurationMap, pickUser());
     }
 
     private static List<TaskStatus> generateStatusesFromTime(Duration completionTime) {
-        return null;
+        List<TaskStatus> statuses = new ArrayList<>(STATUS_AMOUNT);
+
+        for (int i = 0; i < STATUS_AMOUNT; i++) {
+            Status status = Status.values()[i];
+            double statusShare = STATUS_TIME_SHARE_MAP.get(status);
+            long statusMillis = (long) (completionTime.toMillis() * statusShare);
+
+            Duration statusDuration = Duration.ofMillis(statusMillis);
+
+            TaskStatus taskStatus = new TaskStatus(status, statusDuration);
+            statuses.add(taskStatus);
+        }
+        return statuses;
     }
 
 
@@ -243,8 +251,8 @@ public class TaskGenerator {
         TaskGenerator.taskGenerationDelay = taskGenerationDelay;
     }
 
-    public static void setAverageCompletionRate(double averageCompletionRate) {
-        TaskGenerator.averageCompletionRate = averageCompletionRate;
+    public static void setTaskGenerationDelay(long generationDelayMillis) {
+        TaskGenerator.generationDelayMillis = generationDelayMillis;
     }
 
     public static void setAverageCompletionTime(Duration duration) {
